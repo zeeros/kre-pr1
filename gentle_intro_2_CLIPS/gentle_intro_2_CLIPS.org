@@ -137,12 +137,12 @@ The ~(interest nil)~ says that this rule should fire only if we don't have a val
 * Examples
 ** Structured frame with ~deftemplate~, variables and frame editing
 
-#+BEGIN_SRC sh :results output drawer
+#+BEGIN_SRC sh :results output code
 cat ./01.clp.txt
 #+END_SRC
 
 #+RESULTS:
-:results:
+#+begin_src sh
 ;
 ; This example illustrates three ideas:
 ; 1. The use of a structured frame (deftemplate)
@@ -195,16 +195,16 @@ cat ./01.clp.txt
 ; that rule to add that the student (Dee again) is interested in law.
 ; This is actually a deletion of the first frame and an insertion of the
 ; modified frame)
-:end:
+#+end_src
 
 ** ~printout~ command
 
-#+BEGIN_SRC sh :results output drawer
+#+BEGIN_SRC sh :results output code
 tail -n 12 ./02.clp.txt
 #+END_SRC
 
 #+RESULTS:
-:results:
+#+begin_src sh
 (defrule rule-1 "a first rule"
 (student (sname ?name) (major law))
 =>
@@ -217,16 +217,16 @@ tail -n 12 ./02.clp.txt
 ; (stdout). Variables can be mixed with text (in double-
 ; quotes). crlf means produce a carriage return at the
 ; end of the text.
-:end:
+#+end_src
 
 ** ~read~ and ~test~ commands
 
-#+BEGIN_SRC sh :results output drawer
+#+BEGIN_SRC sh :results output code
 tail -n 30 ./03.clp.txt
 #+END_SRC
 
 #+RESULTS:
-:results:
+#+begin_src sh
 (deftemplate enroll "enrollment records"
 (slot sname)
 (slot cname)
@@ -257,18 +257,18 @@ tail -n 30 ./03.clp.txt
 =>
 (printout t "Student " ?name " did well in " ?cnme crlf)
 )
-:end:
+#+end_src
 
 ** Template with ~multislot~ and slot with ~type~
 
 Multislot values have to be captured by multi-field variables ~$?<name>~ in rule premises
 
-#+BEGIN_SRC sh :results output drawer
+#+BEGIN_SRC sh :results output code
 cat ./04.clp.txt
 #+END_SRC
 
 #+RESULTS:
-:results:
+#+begin_src sh
 (deftemplate student "A student frame"
 (slot sno)
 (slot sname)
@@ -293,11 +293,11 @@ cat ./04.clp.txt
 (student (sno s01) (sname Poirot) (major csci)
 (interests music go psych ceramics))
 )
-:end:
+#+end_src
 
 ** Slightly more complex student example
 
-#+BEGIN_SRC sh :results output drawer
+#+BEGIN_SRC sh :results output code
 cat ./05.clp.txt
 #+END_SRC
 
