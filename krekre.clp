@@ -144,3 +144,21 @@
 	(assert (nW 0))
 	(assert (nE 0))
 )
+
+(defrule ruleNSLeft
+	?car <- (car (from ?from))
+	(not(car (from 1)))
+	(not(car (from 3)))	
+=>
+	(printout t "No cars from N or S so car from " ?from crlf)
+	(retract ?car)
+)
+
+(defrule ruleWELeft
+	?car <- (car (from ?from))
+	(not(car (from 0)))
+	(not(car (from 2)))	
+=>
+	(printout t "No cars from N or S so car from " ?from crlf)
+	(retract ?car)
+)
