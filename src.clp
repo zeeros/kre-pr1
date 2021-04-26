@@ -1,10 +1,11 @@
 (defglobal ?*nCars* = 40) ; number of cars to generate
 (defglobal ?*N* = 2) ; maximum number of cars passed from each direction in a turn
-(assert (turn NS)) ; current turn, North-South(initially) or West-East
-(assert (nN 0)) ; number of cars passed from North in current turn
-(assert (nW 0)) ; number of cars passed from West in current turn
-(assert (nS 0)) ; number of cars passed from South in current turn
-(assert (nE 0)) ; number of cars passed from East in current turn
+(assert (turn N))
+(assert (turn S))
+(assert (counter N 0))
+(assert (counter W 0))
+(assert (counter S 0))
+(assert (counter E 0))
 
 (deftemplate car
 	(slot id) ; unique identifier
@@ -54,59 +55,17 @@
 	(assert (comes-after ?id ?lastid))
     (printout t ?id " comes after " ?lastid crlf))
 
-(defrule ruleN ; base rule for cars from North
-	(turn NS) ; North-South turn
-	?car <- (car (id ?id) (from N)) ; car from North
-	?n <- (nN ?v&:(< ?v ?*N*)) ; less than N cars already passed from North
-	(not (comes-after ?id ?)) ; first from North
+(defrule rule
+	?car <- (car (id ?id) (from ?from)) ; base rule for all cars
+	?n <- (counter ?from ?v&:(< ?v ?*N*)) ; less than N cars already passed from ?from
+	(not (comes-after ?id ?)) ; first from ?from
 	?dir <- (from-dir ?id ?) ; temporary fact about from
+	(turn ?from)
 =>	
-	(printout t ?id " pass from N" crlf)
+	(printout t ?id " pass from " ?from crlf)
 	(retract ?car) ; car passed so remove it from system
 	(retract ?n) ; remove old number of cars passed
-	(assert (nN (+ ?v 1))) ; add new number of cars passed
-	(retract ?dir) ; clean up temporary fact
-)
-
-(defrule ruleW ; base rule for cars from West
-	(turn WE) ; West-East turn
-	?car <- (car (id ?id) (from W)) ; car from West
-	?n <- (nW ?v&:(< ?v ?*N*)) ; less than N cars already passed from West
-	(not (comes-after ?id ?)) ; first from West
-	?dir <- (from-dir ?id ?) ; temporary fact about from
-=>	
-	(printout t ?id " pass from W" crlf)
-	(retract ?car) ; car passed so remove it from system
-	(retract ?n) ; remove old number of cars passed
-	(assert (nW (+ ?v 1))) ; add new number of cars passed
-	(retract ?dir) ; clean up temporary fact
-)
-
-(defrule ruleS ; base rule for cars from South
-	(turn NS) ; North-South turn
-	?car <- (car (id ?id) (from S)) ; car from South
-	?n <- (nS ?v&:(< ?v ?*N*)) ; less than N cars already passed from South
-	(not (comes-after ?id ?)) ; first from South
-	?dir <- (from-dir ?id ?) ; temporary fact about from
-=>	
-	(printout t ?id " pass from S" crlf)
-	(retract ?car) ; car passed so remove it from system
-	(retract ?n) ; remove old number of cars passed
-	(assert (nS (+ ?v 1))) ; add new number of cars passed
-	(retract ?dir) ; clean up temporary fact
-)
-
-(defrule ruleE ; base rule for cars from East
-	(turn WE) ; West-East turn
-	?car <- (car (id ?id) (from E)) ; car from East
-	?n <- (nE ?v&:(< ?v ?*N*)) ; less than N cars already passed from East
-	(not (comes-after ?id ?)) ; first from East
-	?dir <- (from-dir ?id ?) ; temporary fact about from
-=>	
-	(printout t ?id " pass from E" crlf)
-	(retract ?car) ; car passed so remove it from system
-	(retract ?n) ; remove old number of cars passed
-	(assert (nE (+ ?v 1))) ; add new number of cars passed
+	(assert (counter ?from (+ ?v 1))) ; add new number of cars passed
 	(retract ?dir) ; clean up temporary fact
 )
 
@@ -129,9 +88,10 @@
 )
 
 (defrule ruleNS ; rule for changing the turn from North-South to West-East
-	?turn <- (turn NS) ; North-South turn
-	?nN <- (nN ?vN) ; number of cars that already passed from North
-	?nS <- (nS ?vS) ; number of cars that already passed from South
+	?turnN <- (turn N) ; North turn	
+	?turnS <- (turn S) ; South turn	
+	?nN <- (counter N ?vN) ; number of cars that already passed from North
+	?nS <- (counter S ?vS) ; number of cars that already passed from South
 	(or
 		(test (= ?vN ?*N*)) ; maximum number of cars already passed from North or
 		(not(car (from N))) ; no more cars from North
@@ -148,16 +108,19 @@
 	(printout t "Changed turn from NS to WE" crlf)	
 	(retract ?nN) ; remove old number of cars passed from North
 	(retract ?nS) ; remove old number of cars passed from South
-	(assert (nN 0)) ; add new number of cars passed from North
-	(assert (nS 0)) ; add new number of cars passed from South
-	(retract ?turn) ; unset North-South turn 
-	(assert (turn WE)) ; set West-East turn	
+	(assert (counter N 0)) ; add new number of cars passed from North
+	(assert (counter S 0)) ; add new number of cars passed from South
+	(retract ?turnN) ; unset North turn
+	(retract ?turnS) ; unset South turn	
+	(assert (turn W)) ; set West turn	
+	(assert (turn E)) ; set East turn	
 )
 
 (defrule ruleWE ; rule for changing the turn from West-East to North-South
-	?turn <- (turn WE) ; West-East turn
-	?nW <- (nW ?vW) ; number of cars that already passed from West
-	?nE <- (nE ?vE) ; number of cars that already passed from East
+	?turnW <- (turn W) ; West turn
+	?turnE <- (turn E) ; East turn
+	?nW <- (counter W ?vW) ; number of cars that already passed from West
+	?nE <- (counter E ?vE) ; number of cars that already passed from East
 	(or
 		(test (= ?vW ?*N*)) ; maximum number of cars already passed from West or
 		(not(car (from W))) ; no more cars from West
@@ -174,10 +137,12 @@
 	(printout t "Changed turn from WE to NS" crlf)	
 	(retract ?nW) ; remove old number of cars passed from West
 	(retract ?nE) ; remove old number of cars passed from East
-	(assert (nW 0)) ; add new number of cars passed from West
-	(assert (nE 0)) ; add new number of cars passed from East
-	(retract ?turn) ; unset West-East turn
-	(assert (turn NS)) ; set North-South turn
+	(assert (counter W 0)) ; add new number of cars passed from West
+	(assert (counter E 0)) ; add new number of cars passed from East
+	(retract ?turnW) ; unset West turn
+	(retract ?turnE) ; unset East turn
+	(assert (turn N)) ; set North turn
+	(assert (turn S)) ; set South turn
 )
 
 (defrule ruleNSLeft ; existing car from North/South but no cars from West/East
