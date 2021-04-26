@@ -1,11 +1,5 @@
 (defglobal ?*nCars* = 40) ; number of cars to generate
 (defglobal ?*N* = 2) ; maximum number of cars passed from each direction in a turn
-(assert (counter N 0))
-(assert (counter W 0))
-(assert (counter S 0))
-(assert (counter E 0))
-(assert (turn N))
-(assert (turn S))
 
 (deftemplate car
 	(slot id) ; unique identifier
@@ -35,13 +29,20 @@
 	(return ?int)
 )
 
+(assert (counter (symbol2int N) 0))
+(assert (counter (symbol2int W) 0))
+(assert (counter (symbol2int S) 0))
+(assert (counter (symbol2int E) 0))
+(assert (turn (symbol2int N)))
+(assert (turn (symbol2int S)))
+
 (loop-for-count (?i 1 ?*nCars*) do
 	(bind ?from (mod (random) 4)) ; random int from set {0, 1, 2, 3}
 	(bind ?to (mod (+ ?from 1 (mod (random) 2)) 4)) ; from + [1(right) | 2(straight)]
 	(assert (car 
 		(id (gensym)) ; unique identifier
-		(from (int2symbol ?from)) ; map int to symbol
-		(to (int2symbol ?to)) ; map int to symbol
+		(from ?from)
+		(to ?to)
 	))
 )
 
@@ -73,7 +74,7 @@
 	?dir <- (from-dir ?id ?) ; temporary fact about ?from
 	(turn ?from)
 =>	
-	(printout t ?id " pass from " ?from crlf)
+	(printout t ?id " pass from " (int2symbol ?from) crlf)
 	(retract ?car) ; car passed so remove it from system
 	(retract ?n) ; remove old number of cars passed
 	(assert (counter ?from (+ ?v 1))) ; add new number of cars passed
@@ -101,8 +102,8 @@
 (defrule ruleTurn
 	?turn1 <- (turn ?from1)
 	?turn2 <- (turn ?from2&:(= 
-		(+ (symbol2int ?from1) 2)
-		(symbol2int ?from2)
+		(+ ?from1 2)
+		?from2
 	))
 	?n1 <- (counter ?from1 ?v1)
 	?n2 <- (counter ?from2 ?v2)
@@ -116,12 +117,12 @@
 	)
 	(car (from ?from3&:
 		(neq 
-			(mod (symbol2int ?from1) 2)
-			(mod (symbol2int ?from3) 2)
+			(mod ?from1 2)
+			(mod ?from3 2)
 		)
 	))
 =>
-	(printout t "Changed turn from " ?from1 ?from2 crlf)
+	(printout t "Changed turn from " (int2symbol ?from1) (int2symbol ?from2) crlf)
 	(retract ?n1)
 	(retract ?n2)
 	(assert (counter ?from1 0))
@@ -129,10 +130,10 @@
 	(retract ?turn1)
 	(retract ?turn2)
 	(assert (turn 
-		(int2symbol (+ (symbol2int ?from1) 1))
+		(+ ?from1 1)
 	))
 	(assert (turn 
-		(int2symbol (mod (+ (symbol2int ?from1) 3) 4))
+		(mod (+ ?from1 3) 4)
 	))
 )
 
@@ -140,13 +141,13 @@
 	?car <- (car (id ?id) (from ?from1))
 	(not(car (from ?from2&:
 		(neq 
-			(mod (symbol2int ?from1) 2)
-			(mod (symbol2int ?from2) 2)
+			(mod ?from1 2)
+			(mod ?from2 2)
 		)
 	)))
 	?dir <- (from-dir ?id ?) ; temporary fact about from
 =>
-	(printout t "No cars from other group so " ?id " pass from " ?from1 crlf)
+	(printout t "No cars from other group so " ?id " pass from " (int2symbol ?from1) crlf)
 	(retract ?car) ; car passed so remove it from system
 	(retract ?dir) ; clean up temporary fact
 )
