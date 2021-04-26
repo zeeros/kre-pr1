@@ -1,11 +1,11 @@
 (defglobal ?*nCars* = 40) ; number of cars to generate
 (defglobal ?*N* = 2) ; maximum number of cars passed from each direction in a turn
-(assert (turn N))
-(assert (turn S))
 (assert (counter N 0))
 (assert (counter W 0))
 (assert (counter S 0))
 (assert (counter E 0))
+(assert (turn N))
+(assert (turn S))
 
 (deftemplate car
 	(slot id) ; unique identifier
@@ -13,7 +13,7 @@
 	(slot to) ; random target based on source, straight or right
 )
 
-(deffunction direction ; function mapping direction integers to symbols
+(deffunction int2symbol ; function mapping direction integer to symbol
 	(?int)
 	(switch ?int
 		(case 0 then (bind ?symbol N))
@@ -24,13 +24,24 @@
 	(return ?symbol)
 )
 
+(deffunction symbol2int ; function mapping direction symbol to integer
+	(?symbol)
+	(switch ?symbol
+		(case N then (bind ?int 0))
+		(case W then (bind ?int 1))
+		(case S then (bind ?int 2))
+		(case E then (bind ?int 3))
+	)
+	(return ?int)
+)
+
 (loop-for-count (?i 1 ?*nCars*) do
 	(bind ?from (mod (random) 4)) ; random int from set {0, 1, 2, 3}
 	(bind ?to (mod (+ ?from 1 (mod (random) 2)) 4)) ; from + [1(right) | 2(straight)]
 	(assert (car 
 		(id (gensym)) ; unique identifier
-		(from (direction ?from)) ; map to symbol
-		(to (direction ?to)) ; map to symbol
+		(from (int2symbol ?from)) ; map int to symbol
+		(to (int2symbol ?to)) ; map int to symbol
 	))
 )
 
@@ -55,11 +66,11 @@
 	(assert (comes-after ?id ?lastid))
     (printout t ?id " comes after " ?lastid crlf))
 
-(defrule rule
-	?car <- (car (id ?id) (from ?from)) ; base rule for all cars
+(defrule rule ; base rule for all cars
+	?car <- (car (id ?id) (from ?from)) ; car from ?from
 	?n <- (counter ?from ?v&:(< ?v ?*N*)) ; less than N cars already passed from ?from
 	(not (comes-after ?id ?)) ; first from ?from
-	?dir <- (from-dir ?id ?) ; temporary fact about from
+	?dir <- (from-dir ?id ?) ; temporary fact about ?from
 	(turn ?from)
 =>	
 	(printout t ?id " pass from " ?from crlf)
@@ -145,24 +156,17 @@
 	(assert (turn S)) ; set South turn
 )
 
-(defrule ruleNSLeft ; existing car from North/South but no cars from West/East
-	?car <- (car (id ?id) (from ?from)) ; car from North/South 
-	(not(car (from W))) ; no cars from West 
-	(not(car (from E)))	; no cars from East
+(defrule rule2 ; no cars in other group 
+	?car <- (car (id ?id) (from ?from1))
+	(not(car (from ?from2&:
+		(neq 
+			(mod (symbol2int ?from1) 2)
+			(mod (symbol2int ?from2) 2)
+		)
+	)))
 	?dir <- (from-dir ?id ?) ; temporary fact about from
 =>
-	(printout t "No cars from W or E so " ?id " pass from " ?from crlf)
-	(retract ?car) ; car passed so remove it from system
-	(retract ?dir) ; clean up temporary fact
-)
-
-(defrule ruleWELeft ; existing car from West/East but no cars from North/South
-	?car <- (car (id ?id) (from ?from)) ; car from West/East 
-	(not(car (from N))) ; no cars from North 
-	(not(car (from S))) ; no cars from South
-	?dir <- (from-dir ?id ?) ; temporary fact about from
-=>
-	(printout t "No cars from N or S so " ?id " pass from " ?from crlf)
+	(printout t "No cars from other group so " ?id " pass from " ?from1 crlf)
 	(retract ?car) ; car passed so remove it from system
 	(retract ?dir) ; clean up temporary fact
 )
