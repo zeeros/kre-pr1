@@ -39,7 +39,7 @@
 (loop-for-count (?i 1 ?*nCars*) do
 	(bind ?from (mod (random) 4)) ; random int from set {0, 1, 2, 3}
 	(bind ?to (mod (+ ?from 1 (mod (random) 2)) 4)) ; from + [1(right) | 2(straight)]
-	(assert (car
+	(assert (car 
 		(id (gensym)) ; unique identifier
 		(from ?from)
 		(to ?to)
@@ -73,7 +73,7 @@
 	(not (comes-after ?id ?)) ; first from ?from
 	?dir <- (from-dir ?id ?) ; temporary fact about ?from
 	(turn ?from)
-=>
+=>	
 	(printout t ?id " pass from " (int2symbol ?from) crlf)
 	(retract ?car) ; car passed so remove it from system
 	(retract ?n) ; remove old number of cars passed
@@ -101,7 +101,7 @@
 
 (defrule ruleTurn
 	?turn1 <- (turn ?from1)
-	?turn2 <- (turn ?from2&:(=
+	?turn2 <- (turn ?from2&:(= 
 		(+ ?from1 2)
 		?from2
 	))
@@ -116,7 +116,7 @@
 		(not(car (from ?from2)))
 	)
 	(car (from ?from3&:
-		(neq
+		(neq 
 			(mod ?from1 2)
 			(mod ?from3 2)
 		)
@@ -129,18 +129,18 @@
 	(assert (counter ?from2 0))
 	(retract ?turn1)
 	(retract ?turn2)
-	(assert (turn
+	(assert (turn 
 		(+ ?from1 1)
 	))
-	(assert (turn
+	(assert (turn 
 		(mod (+ ?from1 3) 4)
 	))
 )
 
-(defrule rule2 ; no cars in other group
+(defrule rule2 ; no cars in other group 
 	?car <- (car (id ?id) (from ?from1))
 	(not(car (from ?from2&:
-		(neq
+		(neq 
 			(mod ?from1 2)
 			(mod ?from2 2)
 		)

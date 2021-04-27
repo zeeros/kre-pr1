@@ -27,3 +27,7 @@ The two policies implement the following permission to cross rules
   - Description of the KB :: For both SRC and SRLC
   - Capture of correct execution :: For both SRC and SRLC
 - Text file with the code for both SRC and SRLC
+
+* Useful resources
+
+- [[https://kcir.pwr.edu.pl/~witold/ai/CLIPS_tutorial/][Witold Paluszynski - CLIPS tutorial]]

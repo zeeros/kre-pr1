@@ -1,30 +1,41 @@
-(deftemplate car "this is a car"
-  (slot from (allowed-symbols N S E W))
-  (slot to (allowed-symbols straight right left))
+; Number of incoming cars
+(defglobal ?*nocars* = 10)
+; Keep track of the turn
+(assert (turn 0))
+; Seed the random number generator for reproducibility
+(seed 1423)
+
+(deffunction direction
+  (?int)
+  (switch ?int
+    (case 0 then (bind ?symbol N))
+    (case 1 then (bind ?symbol W))
+    (case 2 then (bind ?symbol S))
+    (case 3 then (bind ?symbol E))
+  )
+  (return ?symbol)
+)
+
+(deftemplate car
+  (slot from)
+  (slot to)
   (slot arrival)
   (slot departure)
 )
 
-;
-; Keep track of the turn
-;
-(defglobal ?*turn* = 0)
-
-(deffacts F
-  (car (from S) (to straight) (arrival 0))
-  (car (from N) (to right) (arrival 2))
-  (car (from E) (to straight) (arrival 4))
-  (car (from W) (to right) (arrival 30))
-  (car (from W) (to left) (arrival 40))
-  (car (from W) (to left) (arrival 50))
-  (car (from S) (to left) (arrival 6))
+(loop-for-count (?i 1 ?*nocars*) do
+  (bind ?from (random 0 3))
+  (bind ?to (mod (+ ?from (random 1 3)) 4))
+  (assert (car (from (direction ?from)) (to (direction ?to)) (arrival ?i)))
 )
 
 (defrule crossing "crossing"
   ?c <- (car (from ?f) (to ?t) (arrival ?a) (departure nil))
         (not (car (arrival ?a2&:(< ?a2 ?a)) (departure nil)))
+  ?turn <- (turn ?)
 =>
-  (printout t "car arrived at time " ?a " departs from " ?f " and goes " ?t crlf)
-  (bind ?*turn* (+ ?*turn* 1))
-  (modify ?c (departure ?*turn*))
+  (printout t "time " ?a ": car departs from " ?f " and goes " ?t crlf)
+  (bind ?tv ?turn)
+  (modify ?c (departure ?tv))
+  (modify ?turn (+ 1 ?turn))
 )
