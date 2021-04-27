@@ -1,5 +1,6 @@
 (defglobal ?*nCars* = 40) ; number of cars to generate
 (defglobal ?*N* = 2) ; maximum number of cars passed from each direction in a turn
+(seed 1) ; random number generator seed, used for reproducibility
 
 (deftemplate car
 	(slot id) ; unique identifier
@@ -29,16 +30,20 @@
 	(return ?int)
 )
 
+; number of cars passed from North/West/South/East in current turn
 (assert (counter (symbol2int N) 0))
 (assert (counter (symbol2int W) 0))
 (assert (counter (symbol2int S) 0))
 (assert (counter (symbol2int E) 0))
-(assert (turn (symbol2int N)))
+
+; from directions allowed in current turn, initially North and South
+(assert (turn (symbol2int N))) 
 (assert (turn (symbol2int S)))
 
+; generating nCars cars
 (loop-for-count (?i 1 ?*nCars*) do
-	(bind ?from (mod (random) 4)) ; random int from set {0, 1, 2, 3}
-	(bind ?to (mod (+ ?from 1 (mod (random) 2)) 4)) ; from + [1(right) | 2(straight)]
+	(bind ?from (random 0 3)) ; random int from set {0, 1, 2, 3}
+	(bind ?to (mod (+ ?from (random 1 2)) 4)) ; from + [1(right) | 2(straight)]
 	(assert (car 
 		(id (gensym)) ; unique identifier
 		(from ?from)
@@ -47,31 +52,31 @@
 )
 
 (defrule dir-first
-	(declare (salience 10))
-	(car (id ?id) (from ?from))
-	(not (from-dir ? ?from))
+	(declare (salience 10)) ; queue up before crossing
+	(car (id ?id) (from ?from)) ; car from ?from
+	(not (from-dir ? ?from)) ; no car in ?from queue
 =>
-	(assert (last-from-dir ?id ?from))
-	(assert (from-dir ?id ?from))
+	(assert (last-from-dir ?id ?from)) ; queue up as last in ?from queue
+	(assert (from-dir ?id ?from)) ; queue up in ?from queue
     (printout t ?id " is first from " ?from crlf)))
 
 (defrule dir-next
-	(declare (salience 10))
-	(car (id ?id) (from ?from))
-	(not (from-dir ?id ?))
+	(declare (salience 10)) ; queue up before crossing
+	(car (id ?id) (from ?from)) ; car from ?from
+	(not (from-dir ?id ?)) ; car is not queued up yet
 	?last<-(last-from-dir ?lastid ?from)
 =>
-	(retract ?last)
-	(assert (last-from-dir ?id ?from))
-	(assert (from-dir ?id ?from))
-	(assert (comes-after ?id ?lastid))
+	(retract ?last) ; ?last is not last in ?from queue anymore 
+	(assert (last-from-dir ?id ?from)) ; queue up as last in ?from queue
+	(assert (from-dir ?id ?from)) ; queue up in ?from queue
+	(assert (comes-after ?id ?lastid)) ; queue up after ?last
     (printout t ?id " comes after " ?lastid crlf))
 
 (defrule rule ; base rule for all cars
 	?car <- (car (id ?id) (from ?from)) ; car from ?from
 	?n <- (counter ?from ?v&:(< ?v ?*N*)) ; less than N cars already passed from ?from
-	(not (comes-after ?id ?)) ; first from ?from
-	?dir <- (from-dir ?id ?) ; temporary fact about ?from
+	(not (comes-after ?id ?)) ; first in ?from queue
+	?dir <- (from-dir ?id ?) ; temporary fact about car's queue
 	(turn ?from)
 =>	
 	(printout t ?id " pass from " (int2symbol ?from) crlf)
@@ -82,26 +87,26 @@
 )
 
 (defrule cleanup-after
-	(declare (salience 10))
-	?after<-(comes-after ?aftercar ?id)
-	(not (car (id ?id)))
+	(declare (salience 10)) ; clean up before crossing
+	?after<-(comes-after ?aftercar ?id) ; temporary fact about car's position in queue
+	(not (car (id ?id))) ; car doesn't exist anymore
 =>
 	;(printout t ?aftercar " is no longer after" ?id crlf)
-	(retract ?after)
+	(retract ?after) ; clean up temporary fact
 )
 
 (defrule cleanup-last
-	(declare (salience 10))
-	?last <- (last-from-dir ?id ?)
-	(not (car (id ?id)))
+	(declare (salience 10)) ; clean up before crossing
+	?last <- (last-from-dir ?id ?) ; temporary fact about car's position in queue
+	(not (car (id ?id))) ; car doesn't exist anymore
 =>
 	;(printout t ?id " is no longer last" crlf)
-	(retract ?last)
+	(retract ?last) ; clean up temporary fact
 )
 
 (defrule ruleTurn
-	?turn1 <- (turn ?from1)
-	?turn2 <- (turn ?from2&:(= 
+	?turn1 <- (turn ?from1) ; either a)North or b)West
+	?turn2 <- (turn ?from2&:(= ; either a)South or b)East
 		(+ ?from1 2)
 		?from2
 	))
@@ -123,29 +128,29 @@
 	))
 =>
 	(printout t "Changed turn from " (int2symbol ?from1) (int2symbol ?from2) crlf)
-	(retract ?n1)
-	(retract ?n2)
-	(assert (counter ?from1 0))
-	(assert (counter ?from2 0))
-	(retract ?turn1)
-	(retract ?turn2)
-	(assert (turn 
+	(retract ?n1) ; remove old counter
+	(retract ?n2) ; remove old counter
+	(assert (counter ?from1 0)) ; add new counter
+	(assert (counter ?from2 0)) ; add new counter
+	(retract ?turn1) ; remove old turn
+	(retract ?turn2) ; remove old turn
+	(assert (turn ; either a)West or b)South
 		(+ ?from1 1)
 	))
-	(assert (turn 
+	(assert (turn ; either a)East or b)North
 		(mod (+ ?from1 3) 4)
 	))
 )
 
-(defrule rule2 ; no cars in other group 
-	?car <- (car (id ?id) (from ?from1))
-	(not(car (from ?from2&:
+(defrule ruleEnd ; cars in one group but no cars in other group 
+	?car <- (car (id ?id) (from ?from1)) ; car from group North-South or West-East
+	(not(car (from ?from2&: ; no cars from other group
 		(neq 
-			(mod ?from1 2)
-			(mod ?from2 2)
+			(mod ?from1 2) ; for Nort and South it's 0
+			(mod ?from2 2) ; for West and East it's 1
 		)
 	)))
-	?dir <- (from-dir ?id ?) ; temporary fact about from
+	?dir <- (from-dir ?id ?) ; temporary fact about car's queue
 =>
 	(printout t "No cars from other group so " ?id " pass from " (int2symbol ?from1) crlf)
 	(retract ?car) ; car passed so remove it from system
