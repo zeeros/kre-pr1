@@ -32,10 +32,10 @@
 (defrule crossing "crossing"
   ?c <- (car (from ?f) (to ?t) (arrival ?a) (departure nil))
         (not (car (arrival ?a2&:(< ?a2 ?a)) (departure nil)))
-  ?turn <- (turn ?)
+  ?turn <- (turn ?tv)
 =>
   (printout t "time " ?a ": car departs from " ?f " and goes " ?t crlf)
-  (bind ?tv ?turn)
   (modify ?c (departure ?tv))
-  (modify ?turn (+ 1 ?turn))
+  (retract ?turn)
+  (assert (turn (+ 1 ?tv)))
 )
