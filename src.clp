@@ -8,6 +8,7 @@
 	(slot to) ; random target based on source, straight or right
 	(slot queued (default false)) ; whenever car is already queued
 	(slot last (default false)) ; whenever car is last in its queue
+	(slot car-before) ; car-before waiting in a queue before a car
 )
 
 (deftemplate counter
@@ -72,15 +73,14 @@
 	?car <- (car (id ?id) (from ?from) (queued false)) ; not queued up car from ?from
 	?last <- (car (id ?lastid) (from ?from) (last true)) ; last car in ?from queue
 =>
-	(modify ?car (queued true) (last true)) ; queue up car as last in ?from queue
+	(modify ?car (queued true) (last true) (car-before ?lastid)) ; queue up car as last in ?from queue
 	(modify ?last (last false)) ; ?last is not last in ?from queue anymore
-	(assert (comes-after ?id ?lastid)) ; queue up ?car after ?last
     (printout t ?id " comes after " ?lastid crlf))
 
 (defrule rule ; base rule for all cars
-	?car <- (car (id ?id) (from ?from) (to ?to) (queued true)) ; queued up car from ?from
+	(declare (salience 10)) ; base rule
+	?car <- (car (id ?id) (from ?from) (to ?to) (queued true) (car-before nil)) ; first car in ?from queue
 	?counter <- (counter (symbol ?from) (value ?v&:(< ?v ?*N*))) ; less than N cars already passed from ?from
-	(not (comes-after ?id ?)) ; car is first in ?from queue
 	(turn (symbol ?from)) ; it's right turn
 	(not (car (queued false))) ; no cars waiting to be queued up
 =>	
@@ -89,13 +89,11 @@
 	(modify ?counter (value (+ ?v 1))) ; modify number of cars passed
 )
 
-(defrule cleanup-after
-	;(declare (salience 10)) ; clean up before crossing
-	?after<-(comes-after ?aftercar ?id) ; temporary fact about car's position in queue
+(defrule cleanup-car-before
+	?car <- (car (car-before ?id&:(neq ?id nil))) ; temporary fact about car's position in queue
 	(not (car (id ?id))) ; car doesn't exist anymore
 =>
-	;(printout t ?aftercar " is no longer after" ?id crlf)
-	(retract ?after) ; clean up temporary fact
+	(modify ?car (car-before nil)) ; clean up temporary fact
 )
 
 (defrule ruleTurn
@@ -121,11 +119,13 @@
 		)
 	))
 =>
-	(printout t "Changed turn from " (int2symbol ?from1) (int2symbol ?from2) crlf)
+	(bind ?from3 (+ ?from1 1)) ; new turn direction
+	(bind ?from4 (mod (+ ?from1 3) 4)) ; new turn direction
+	(printout t "Changed turn from " (int2symbol ?from1) (int2symbol ?from2) " to " (int2symbol ?from3) (int2symbol ?from4) crlf)
 	(modify ?counter1 (value 0)) ; reset number of cars passed from either a)North or b)West
 	(modify ?counter2 (value 0)) ; reset number of cars passed from either a)South or b)East
-	(modify ?turn1 (symbol (+ ?from1 1))) ; change turn a)from North to West or b)from West to South
-	(modify ?turn2 (symbol (mod (+ ?from1 3) 4))) ; change turn a)from South to East or b)from East to North
+	(modify ?turn1 (symbol ?from3)) ; change turn a)from North to West or b)from West to South
+	(modify ?turn2 (symbol ?from4)) ; change turn a)from South to East or b)from East to North
 )
 
 (defrule ruleEnd ; cars in one group but no cars in other group 
