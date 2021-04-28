@@ -23,7 +23,7 @@
   (slot departure)
 )
 
-(loop-for-count (?i 1 ?*nocars*) do
+(loop-for-count (?i 0 ?*nocars*) do
   (bind ?from (random 0 3))
   (bind ?to (mod (+ ?from (random 1 3)) 4))
   (assert (car (from (direction ?from)) (to (direction ?to)) (arrival ?i)))
