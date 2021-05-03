@@ -4,7 +4,7 @@
 
 (deftemplate car
 	(slot id (default-dynamic (gensym))) ; unique identifier
-	(slot from) ; random source
+	(slot from) ; random source direction mapped to integer from set {0, 1, 2, 3}
 	(slot to) ; random target based on source, straight or right
 	(slot queued (default false)) ; whenever car is already queued
 	(slot last (default false)) ; whenever car is last in its queue
@@ -12,12 +12,12 @@
 )
 
 (deftemplate counter
-	(slot symbol)
+	(slot symbol) ; random direction mapped to integer from set {0, 1, 2, 3}
 	(slot value)
 )
 
 (deftemplate turn
-	(slot symbol)
+	(slot symbol) ; random direction mapped to integer from set {0, 1, 2, 3}
 )
 
 (deffunction int2symbol ; function mapping direction integer to symbol
@@ -48,7 +48,7 @@
 (assert (counter (symbol (symbol2int S)) (value 0)))
 (assert (counter (symbol (symbol2int E)) (value 0)))
 
-; from directions allowed in current turn, initially North and South
+; directions allowed in current turn, initially North and South
 (assert (turn (symbol (symbol2int N))))
 (assert (turn (symbol (symbol2int S))))
 
@@ -62,48 +62,51 @@
 	))
 )
 
-(defrule queue-first
-	?car <- (car (id ?id) (from ?from) (queued false)) ; not queued up car from ?from
-	(not (car (from ?from) (queued true))) ; no car in ?from queue
+(defrule queue-first ; queue up first car in a queue
+	?car <- (car (id ?id) (from ?from) (queued false)) ; not queued up car
+	(not (car (from ?from) (queued true))) ; no cars in queue
 =>
-	(modify ?car (queued true) (last true)) ; queue up car as last in ?from queue	
+	(modify ?car (queued true) (last true)) ; queue up car as last in queue	
     (printout t ?id " comes first from " (int2symbol ?from) crlf)))
 
-(defrule queue-next
-	?car <- (car (id ?id) (from ?from) (queued false)) ; not queued up car from ?from
-	?last <- (car (id ?lastid) (from ?from) (last true)) ; last car in ?from queue
+(defrule queue-next ; queue up next car in a queue
+	?car <- (car (id ?id) (from ?from) (queued false)) ; not queued up car
+	?last <- (car (id ?lastid) (from ?from) (last true)) ; current last car in a queue
 =>
-	(modify ?car (queued true) (last true) (car-before ?lastid)) ; queue up car as last in ?from queue
-	(modify ?last (last false)) ; ?last is not last in ?from queue anymore
+	(modify ?car (queued true) (last true) (car-before ?lastid)) ; queue up car as last in a queue and set car before
+	(modify ?last (last false)) ; previous last car is not last anymore
     (printout t ?id " comes after " ?lastid crlf))
 
-(defrule rule ; base rule for all cars
-	(declare (salience 10)) ; base rule
-	?car <- (car (id ?id) (from ?from) (to ?to) (queued true) (car-before nil)) ; first car in ?from queue
-	?counter <- (counter (symbol ?from) (value ?v&:(< ?v ?*N*))) ; less than N cars already passed from ?from
-	(turn (symbol ?from)) ; it's right turn
+(defrule rule ; crossing
+	(declare (salience 10)) ; base rule so higher priority
 	(not (car (queued false))) ; no cars waiting to be queued up
+	(turn (symbol ?from)) ; it's right turn
+	?counter <- (counter (symbol ?from) (value ?v&:(< ?v ?*N*))) ; less than N cars already passed from given direction
+	?car <- (car (id ?id) (from ?from) (to ?to) (queued true) (car-before nil)) ; first car in queue	
 =>	
-	(printout t ?id " pass from " (int2symbol ?from) " to " (int2symbol ?to) crlf)
 	(retract ?car) ; car passed so remove it from system
 	(modify ?counter (value (+ ?v 1))) ; modify number of cars passed
+	(printout t ?id " pass from " (int2symbol ?from) " to " (int2symbol ?to) crlf)
 )
 
-(defrule cleanup-car-before
-	?car <- (car (car-before ?id&:(neq ?id nil))) ; temporary fact about car's position in queue
-	(not (car (id ?id))) ; car doesn't exist anymore
+(defrule cleanup-car-before ; clean up car-before
+	?car <- (car (car-before ?id&:(neq ?id nil))) ; car with car-before defined
+	(not (car (id ?id))) ; car-before doesn't exist anymore
 =>
-	(modify ?car (car-before nil)) ; clean up temporary fact
+	(modify ?car (car-before nil)) ; reset car-before field
 )
 
-(defrule ruleTurn
-	?turn1 <- (turn (symbol ?from1)) ; either a)North or b)West
-	?turn2 <- (turn (symbol ?from2&:(= ; either a)South or b)East
+(defrule ruleTurn ; change the turn
+	; directions allowed in current turn
+	?turn1 <- (turn (symbol ?from1))
+	?turn2 <- (turn (symbol ?from2&:(=
 		(+ ?from1 2)
 		?from2
 	)))
+	; number of cars that already passed from given directions
 	?counter1 <- (counter (symbol ?from1) (value ?v1))
 	?counter2 <- (counter (symbol ?from2) (value ?v2))
+	; from given directions either no cars left or N already passed
 	(or
 		(test (= ?v1 ?*N*))
 		(not(car (from ?from1)))
@@ -112,6 +115,7 @@
 		(test (= ?v2 ?*N*))
 		(not(car (from ?from2)))
 	)
+	; there is a waiting for the turn change
 	(car (from ?from3&:
 		(neq 
 			(mod ?from1 2)
@@ -119,13 +123,16 @@
 		)
 	))
 =>
-	(bind ?from3 (+ ?from1 1)) ; new turn direction
-	(bind ?from4 (mod (+ ?from1 3) 4)) ; new turn direction
-	(printout t "Changed turn from " (int2symbol ?from1) (int2symbol ?from2) " to " (int2symbol ?from3) (int2symbol ?from4) crlf)
+	; get new directions allowed in current turn
+	(bind ?from3 (+ ?from1 1)) 
+	(bind ?from4 (mod (+ ?from1 3) 4))
+	; reset number of cars passed from given directions
 	(modify ?counter1 (value 0)) ; reset number of cars passed from either a)North or b)West
 	(modify ?counter2 (value 0)) ; reset number of cars passed from either a)South or b)East
-	(modify ?turn1 (symbol ?from3)) ; change turn a)from North to West or b)from West to South
-	(modify ?turn2 (symbol ?from4)) ; change turn a)from South to East or b)from East to North
+	; set new directions allowed in current turn
+	(modify ?turn1 (symbol ?from3))
+	(modify ?turn2 (symbol ?from4))
+	(printout t "Changed turn from " (int2symbol ?from1) (int2symbol ?from2) " to " (int2symbol ?from3) (int2symbol ?from4) crlf)
 )
 
 (defrule ruleEnd ; cars in one group but no cars in other group 
@@ -137,6 +144,6 @@
 		)
 	)))
 =>
-	(printout t "No cars from other group so " ?id " pass from " (int2symbol ?from1) " to " (int2symbol ?to) crlf)
 	(retract ?car) ; car passed so remove it from system
+	(printout t "No cars from other group so " ?id " pass from " (int2symbol ?from1) " to " (int2symbol ?to) crlf)
 )
