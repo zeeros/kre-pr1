@@ -60,5 +60,6 @@
     (assert (car (from (getdirection ?from)) (to (getdirection ?to)) (arrival_time ?newtime)))
     (printout t "car arrives at time " ?newtime " from " (getdirection ?from) ", direction " (getdirection ?to) crlf)
   )
+  ; Update the time and prevent the turn the flag for traffic generation off
   (modify ?crc (time (+ ?t ?incars)) (tflag FALSE))
 )
