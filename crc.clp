@@ -1,3 +1,17 @@
+; Overall settings of the CRC system
+(deftemplate crc
+  ; Policy (0=SRLC, 1=SRC)
+  (slot policy (type INTEGER) (allowed-integers 0 1))
+  ; Number of incoming cars generated at a time
+  (slot incars (type INTEGER) (default 1))
+  ; Number of cars crossing at a time
+  (slot outcars (type INTEGER) (default 1))
+  ; Time
+  (slot time (type INTEGER) (default 0))
+  ; Traffic generation flag
+  (slot tflag (type SYMBOL) (default TRUE))
+)
+
 ; Car
 (deftemplate car
   ; Direction of arrival
@@ -23,10 +37,7 @@
 
 ; Traffic generation
 (defrule gentraffic
-  (policy ?policy)
-  (incars ?incars)
-  ?time <- (time ?t)
-  ?tflag <- (tflag TRUE)
+  ?crc <- (crc (policy ?policy) (incars ?incars) (time ?t) (tflag TRUE))
 =>
   (loop-for-count (?i 1 ?incars) do
     (bind ?newtime (+ ?i ?t))
@@ -38,17 +49,10 @@
     (assert (car (from (getdirection ?from)) (to (getdirection ?to)) (arrival ?newtime)))
     (printout t "car arrives at time " ?newtime " from " (getdirection ?from) ", direction " (getdirection ?to) crlf)
   )
-  (retract ?tflag)
-  (assert (tflag FALSE))
-  (retract ?time)
-  (assert (time (+ ?t ?incars)))
+  (modify ?crc (time (+ ?t ?incars)) (tflag FALSE))
 )
 
 ; Overall settings of the CRC system follow
 (deffacts crc "Overall settings of the CRC system"
-  (policy 0) ; Policy (0=SRLC, 1=SRC)
-  (incars 10) ; Number of cars crossing at a time
-  (outcars 10) ; Number of incoming cars generated at a time
-  (time 0) ; Time
-  (tflag TRUE) ; Traffic generation flag
+  (crc (policy 0))
 )
