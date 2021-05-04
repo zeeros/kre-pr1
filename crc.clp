@@ -1,3 +1,6 @@
+; Random number seed (for reproducibility)
+(seed 1423)
+
 ; Overall settings of the CRC system
 (deftemplate crc
   ; Policy (0=SRLC, 1=SRC)
@@ -6,10 +9,18 @@
   (slot incars (type INTEGER) (default 1))
   ; Number of cars crossing at a time
   (slot outcars (type INTEGER) (default 1))
+  ; Turn
+  (slot turn (type INTEGER) (default 1))
   ; Time
   (slot time (type INTEGER) (default 0))
   ; Traffic generation flag
   (slot tflag (type SYMBOL) (default TRUE))
+  ; Departure flag
+  (slot dflag (type SYMBOL) (default FALSE))
+  ; Counter for departures
+  (slot dcount (type INTEGER) (default 0))
+  ; Time to cross
+  (slot ttx (type INTEGER) (default 1))
 )
 
 ; Car
@@ -19,9 +30,9 @@
   ; Direction of departure
   (slot to)
   ; Time of arrival
-  (slot arrival)
-  ; Time of departure
-  (slot departure)
+  (slot arrival_time)
+  ; Departure order
+  (slot departure_order)
 )
 
 ; Mapping from symbol to number
@@ -46,13 +57,8 @@
       (case 0 then (bind ?to (mod (+ ?from (random 1 3)) 4)))
       (case 1 then (bind ?to (mod (+ ?from (random 1 2)) 4)))
     )
-    (assert (car (from (getdirection ?from)) (to (getdirection ?to)) (arrival ?newtime)))
+    (assert (car (from (getdirection ?from)) (to (getdirection ?to)) (arrival_time ?newtime)))
     (printout t "car arrives at time " ?newtime " from " (getdirection ?from) ", direction " (getdirection ?to) crlf)
   )
   (modify ?crc (time (+ ?t ?incars)) (tflag FALSE))
-)
-
-; Overall settings of the CRC system follow
-(deffacts crc "Overall settings of the CRC system"
-  (crc (policy 0))
 )

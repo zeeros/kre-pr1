@@ -1,41 +1,22 @@
-; Number of incoming cars
-(defglobal ?*nocars* = 10)
-; Keep track of the turn
-(assert (turn 0))
-; Seed the random number generator for reproducibility
-(seed 1423)
+(batch crc.clp)
 
-(deffunction direction
-  (?int)
-  (switch ?int
-    (case 0 then (bind ?symbol N))
-    (case 1 then (bind ?symbol W))
-    (case 2 then (bind ?symbol S))
-    (case 3 then (bind ?symbol E))
-  )
-  (return ?symbol)
+; Overall settings of the CRC system follow
+(deffacts crc "Overall settings of the CRC system"
+  (crc (policy 0) (incars 10) (outcars 10))
 )
 
-(deftemplate car
-  (slot from)
-  (slot to)
-  (slot arrival)
-  (slot departure)
-)
-
-(loop-for-count (?i 1 ?*nocars*) do
-  (bind ?from (random 0 3))
-  (bind ?to (mod (+ ?from (random 1 3)) 4))
-  (assert (car (from (direction ?from)) (to (direction ?to)) (arrival ?i)))
-)
-
-(defrule crossing "crossing"
-  ?c <- (car (from ?f) (to ?t) (arrival ?a) (departure nil))
-        (not (car (arrival ?a2&:(< ?a2 ?a)) (departure nil)))
-  ?turn <- (turn ?tv)
+; Crossing with SRLC policy
+(defrule crossing_srlc
+  ?car <- (car (from ?f) (to ?t) (arrival_time ?a) (departure_order nil))
+  ?crc <- (crc (policy ?policy) (outcars ?outcars) (time ?ti) (turn ?tv) (dflag TRUE) (dcount ?dc&:(< ?dc ?outcars)) (ttx ?ttx))
+  (not (car (arrival_time ?a2&:(< ?a2 ?a)) (departure_order nil)))
 =>
-  (printout t "time " ?a ": car departs from " ?f " and goes " ?t crlf)
-  (modify ?c (departure ?tv))
-  (retract ?turn)
-  (assert (turn (+ 1 ?tv)))
+  (printout t "turn " ?tv ": car arrived at time " ?a " departs from " ?f " and goes " ?t crlf)
+  (modify ?car (departure_order ?tv))
+  (if (= (+ 1 ?dc) ?outcars)
+    then
+    (modify ?crc (time (+ ?ttx ?ti)) (turn (+ 1 ?tv)) (dflag FALSE) (dcount 0))
+    else
+    (modify ?crc (time (+ ?ttx ?ti)) (turn (+ 1 ?tv)) (dcount (+ 1 ?dc)))
+  )
 )
