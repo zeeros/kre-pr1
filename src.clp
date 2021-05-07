@@ -1,4 +1,4 @@
-(defglobal ?*nCars* = 40) ; number of cars to generate
+(defglobal ?*nCars* = 20) ; number of cars to generate
 (defglobal ?*N* = 2) ; maximum number of cars passed from each direction in a turn
 (seed 1) ; random number generator seed, used for reproducibility
 
