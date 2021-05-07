@@ -3,7 +3,6 @@
 (seed 1) ; random number generator seed, used for reproducibility
 
 (deftemplate car
-	(slot id (default-dynamic (gensym))) ; unique identifier
 	(slot from) ; random source direction mapped to integer from set {0, 1, 2, 3}
 	(slot to) ; random target based on source, straight or right
 	(slot arrival_time)
@@ -64,12 +63,12 @@
 (defrule rule ; crossing
 	(turn (symbol ?from)) ; it's right turn
 	?counter <- (counter (symbol ?from) (value ?v&:(< ?v ?*N*))) ; less than N cars already passed from given direction
-	?car <- (car (id ?id) (from ?from) (to ?to) (arrival_time ?a)) ; first car in queue
+	?car <- (car (from ?from) (to ?to) (arrival_time ?a)) ; first car in queue
 	(not (car (from ?from) (arrival_time ?a2&:(< ?a2 ?a))))
 =>	
 	(retract ?car) ; car passed so remove it from system
 	(modify ?counter (value (+ ?v 1))) ; modify number of cars passed
-	(printout t ?id " pass from " (int2symbol ?from) " to " (int2symbol ?to) crlf)
+	(printout t "Car" ?a " passed from " (int2symbol ?from) " to " (int2symbol ?to) crlf)
 )
 
 (defrule ruleTurn ; change the turn
@@ -112,14 +111,14 @@
 )
 
 (defrule ruleEnd ; cars in one group but no cars in other group 
-	?car <- (car (id ?id) (from ?from1) (to ?to)) ; car from group North-South or West-East
+	?car <- (car (from ?from) (to ?to) (arrival_time ?a)) ; car from group North-South or West-East
 	(not(car (from ?from2&: ; no cars from other group
 		(neq 
-			(mod ?from1 2) ; for Nort and South it's 0
+			(mod ?from 2) ; for Nort and South it's 0
 			(mod ?from2 2) ; for West and East it's 1
 		)
 	)))
 =>
 	(retract ?car) ; car passed so remove it from system
-	(printout t "No cars from other group so " ?id " pass from " (int2symbol ?from1) " to " (int2symbol ?to) crlf)
+	(printout t "No cars from other group so Car" ?a " passed from " (int2symbol ?from) " to " (int2symbol ?to) crlf)
 )
