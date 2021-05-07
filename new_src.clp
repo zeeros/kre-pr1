@@ -5,12 +5,12 @@
 (deftemplate car
 	(slot from) ; random source direction mapped to integer from set {0, 1, 2, 3}
 	(slot to) ; random target based on source, straight or right
-	(slot arrival_time)
+	(slot arrival_time) ; time of arrival
 )
 
 (deftemplate counter
 	(slot symbol) ; random direction mapped to integer from set {0, 1, 2, 3}
-	(slot value)
+	(slot value) ; number of cars that already passed from given direction
 )
 
 (deftemplate turn
@@ -64,7 +64,7 @@
 	(turn (symbol ?from)) ; it's right turn
 	?counter <- (counter (symbol ?from) (value ?v&:(< ?v ?*N*))) ; less than N cars already passed from given direction
 	?car <- (car (from ?from) (to ?to) (arrival_time ?a)) ; first car in queue
-	(not (car (from ?from) (arrival_time ?a2&:(< ?a2 ?a))))
+	(not (car (from ?from) (arrival_time ?a2&:(< ?a2 ?a)))) ; no car from given direction that arrived before
 =>	
 	(retract ?car) ; car passed so remove it from system
 	(modify ?counter (value (+ ?v 1))) ; modify number of cars passed
