@@ -18,10 +18,6 @@
 	(slot symbol) ; random direction mapped to integer from set {0, 1, 2, 3}
 )
 
-(deftemplate timer
-	(slot value (default 0)) ; random direction mapped to integer from set {0, 1, 2, 3}
-)
-
 (deffunction int2symbol ; function mapping direction integer to symbol
 	(?int)
 	(switch ?int
@@ -66,7 +62,6 @@
 )
 
 (defrule rule ; crossing
-	(declare (salience 10)) ; base rule so higher priority
 	(turn (symbol ?from)) ; it's right turn
 	?counter <- (counter (symbol ?from) (value ?v&:(< ?v ?*N*))) ; less than N cars already passed from given direction
 	?car <- (car (id ?id) (from ?from) (to ?to) (arrival_time ?a)) ; first car in queue
