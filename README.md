@@ -1,25 +1,25 @@
 
 # Table of Contents
 
-1.  [Assignment](#orgf115373)
-    1.  [System](#org62651be)
-    2.  [Exercises](#org0059825)
-        1.  [Implement a set of rules of in CLIPS for SRLC](#org82a4cb0)
-        2.  [Implement a set of rules of in CLIPS for SRC](#org32c0cd2)
-        3.  [Implement the random arrival of cars from any direction to check the correct behaviour in SRLC and SRC](#org1afc76d)
-    3.  [Delivery](#orgc9fd1a1)
-2.  [Structure](#org46de90a)
-    1.  [Code](#org0b85b4e)
-    2.  [Notes](#orgdb81699)
+1.  [Assignment](#org8480f4a)
+    1.  [System](#org3019444)
+    2.  [Exercises](#orgf200aa3)
+        1.  [Implement a set of rules of in CLIPS for SRLC](#org92e8efc)
+        2.  [Implement a set of rules of in CLIPS for SRC](#org4312e72)
+        3.  [Implement the random arrival of cars from any direction to check the correct behaviour in SRLC and SRC](#org3f82be4)
+    3.  [Delivery](#orge66b82c)
+2.  [Structure](#orgce2c104)
+    1.  [Code](#org3488ca8)
+    2.  [Notes](#org68848a7)
 
 
 
-<a id="orgf115373"></a>
+<a id="org8480f4a"></a>
 
 # Assignment
 
 
-<a id="org62651be"></a>
+<a id="org3019444"></a>
 
 ## System
 
@@ -37,27 +37,27 @@ The two policies implement the following permission to cross rules
     -   If a car crosses, it notifies the crossing to the system
 
 
-<a id="org0059825"></a>
+<a id="orgf200aa3"></a>
 
 ## Exercises
 
 
-<a id="org82a4cb0"></a>
+<a id="org92e8efc"></a>
 
 ### DONE Implement a set of rules of in CLIPS for SRLC
 
 
-<a id="org32c0cd2"></a>
+<a id="org4312e72"></a>
 
 ### DONE Implement a set of rules of in CLIPS for SRC
 
 
-<a id="org1afc76d"></a>
+<a id="org3f82be4"></a>
 
 ### DONE Implement the random arrival of cars from any direction to check the correct behaviour in SRLC and SRC
 
 
-<a id="orgc9fd1a1"></a>
+<a id="orge66b82c"></a>
 
 ## Delivery
 
@@ -68,22 +68,22 @@ The two policies implement the following permission to cross rules
 -   Text file with the code for both SRC and SRLC
 
 
-<a id="org46de90a"></a>
+<a id="orgce2c104"></a>
 
 # Structure
 
 
-<a id="org0b85b4e"></a>
+<a id="org3488ca8"></a>
 
 ## Code
 
--   **`crc.clp`:** Generic logic for traffic generation in a CRC for both SRC and SRLC
--   **`srlc.clp`:** Logic for traffic generation and crossing in a CRC with SRLC policy
--   **`src.clp`:** Logic for traffic generation and crossing in a CRC with SRC policy
--   **`bonus_src_queue.clp`:** Logic for traffic generation and crossing in a CRC with SRC policy using queues
+-   **crc.clp:** Generic logic for traffic generation in a CRC for both SRC and SRLC
+-   **srlc.clp:** Logic for traffic generation and crossing in a CRC with SRLC policy
+-   **src.clp:** Logic for traffic generation and crossing in a CRC with SRC policy
+-   **bonus<sub>src</sub><sub>queue.clp</sub>:** Logic for traffic generation and crossing in a CRC with SRC policy using queues
 
 
-<a id="orgdb81699"></a>
+<a id="org68848a7"></a>
 
 ## Notes
 

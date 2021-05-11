@@ -30,10 +30,10 @@
  - Text file with the code for both SRC and SRLC
 * Structure
 ** Code
-- ~crc.clp~ :: Generic logic for traffic generation in a CRC for both SRC and SRLC
-- ~srlc.clp~ :: Logic for traffic generation and crossing in a CRC with SRLC policy
-- ~src.clp~ :: Logic for traffic generation and crossing in a CRC with SRC policy
-- ~bonus_src_queue.clp~ :: Logic for traffic generation and crossing in a CRC with SRC policy using queues
+- crc.clp :: Generic logic for traffic generation in a CRC for both SRC and SRLC
+- srlc.clp :: Logic for traffic generation and crossing in a CRC with SRLC policy
+- src.clp :: Logic for traffic generation and crossing in a CRC with SRC policy
+- bonus_src_queue.clp :: Logic for traffic generation and crossing in a CRC with SRC policy using queues
 ** Notes
 - assignment.pdf :: Original text of the assignment
 - delivery.pdf :: Delivery document
