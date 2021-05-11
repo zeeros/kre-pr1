@@ -2,6 +2,8 @@
 
 * System
 
+We consider a crossing road control (CRC) that manages cars coming from north south, east and west.
+
 #+CAPTION: A crossing road control (CRC) can implement two policies: straight-right crossing (SRC) or straight-right-left crossing (SRC).
 #+NAME:   fig:01
 [[./crc-policies.jpg]]
@@ -16,9 +18,9 @@ The two policies implement the following permission to cross rules
 
 * Exercises
 
-** Implement a set of rules of in CLIPS for SRLC
-** Implement a set of rules of in CLIPS for SRC
-** Implement the random arrival of cars from any direction to check the correct behaviour in SRLC and SRC
+** DONE Implement a set of rules of in CLIPS for SRLC
+** DONE Implement a set of rules of in CLIPS for SRC
+** DONE Implement the random arrival of cars from any direction to check the correct behaviour in SRLC and SRC
 
 * Delivery
 
@@ -27,7 +29,3 @@ The two policies implement the following permission to cross rules
   - Description of the KB :: For both SRC and SRLC
   - Capture of correct execution :: For both SRC and SRLC
 - Text file with the code for both SRC and SRLC
-
-* Useful resources
-
-- [[https://kcir.pwr.edu.pl/~witold/ai/CLIPS_tutorial/][Witold Paluszynski - CLIPS tutorial]]
