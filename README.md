@@ -1,16 +1,16 @@
 
 # Table of Contents
 
-1.  [System](#org0063ab5)
-2.  [Exercises](#org8e63788)
-    1.  [Implement a set of rules of in CLIPS for SRLC](#org87cf4a2)
-    2.  [Implement a set of rules of in CLIPS for SRC](#org81b2e60)
-    3.  [Implement the random arrival of cars from any direction to check the correct behaviour in SRLC and SRC](#org277e379)
-3.  [Delivery](#org7f35d84)
+1.  [System](#org673eada)
+2.  [Exercises](#org77ce990)
+    1.  [Implement a set of rules of in CLIPS for SRLC](#org15d1b54)
+    2.  [Implement a set of rules of in CLIPS for SRC](#orgfbd4c69)
+    3.  [Implement the random arrival of cars from any direction to check the correct behaviour in SRLC and SRC](#org85d72fe)
+3.  [Delivery](#orga9f2f3e)
 
 
 
-<a id="org0063ab5"></a>
+<a id="org673eada"></a>
 
 # System
 
@@ -28,27 +28,27 @@ The two policies implement the following permission to cross rules
     -   If a car crosses, it notifies the crossing to the system
 
 
-<a id="org8e63788"></a>
+<a id="org77ce990"></a>
 
 # Exercises
 
 
-<a id="org87cf4a2"></a>
+<a id="org15d1b54"></a>
 
 ## DONE Implement a set of rules of in CLIPS for SRLC
 
 
-<a id="org81b2e60"></a>
+<a id="orgfbd4c69"></a>
 
 ## DONE Implement a set of rules of in CLIPS for SRC
 
 
-<a id="org277e379"></a>
+<a id="org85d72fe"></a>
 
 ## DONE Implement the random arrival of cars from any direction to check the correct behaviour in SRLC and SRC
 
 
-<a id="org7f35d84"></a>
+<a id="orga9f2f3e"></a>
 
 # Delivery
 
